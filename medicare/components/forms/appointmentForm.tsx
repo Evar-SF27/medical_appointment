@@ -1,5 +1,3 @@
-"use client"
- 
 import { z } from "zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -11,8 +9,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { createUser } from "@/lib/actions/patient.actions"
 import SubmitButton from "../shared/submitButton"
 import CustomFormField from "../shared/customFormField"
- 
-export default function PatientForm() {
+
+const AppointmentForm = (
+    {  userId, patientId, type } : {
+        userId: string,
+        patientId: string,
+        type: "create" | "update"
+    }) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const router = useRouter();
   
@@ -46,8 +49,8 @@ export default function PatientForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex-1">
         <section className="mb-12 space-y-4">
-            <h1 className="header">Hi there 👋🏼</h1>
-            <p className="text-dark-700">Schedule your first appointment</p>
+            <h1 className="header">New Appointment 👨🏽‍⚕️</h1>
+            <p className="text-dark-700">Request a new appointment in 10 seconds</p>
         </section>
         <CustomFormField
             fieldType={FormFieldType.INPUT}
@@ -79,3 +82,5 @@ export default function PatientForm() {
     </Form>
   )
 }
+
+export default AppointmentForm
