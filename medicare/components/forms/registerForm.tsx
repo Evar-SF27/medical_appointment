@@ -9,40 +9,77 @@ import CustomFormField from "../shared/customFormField"
 import { FormFieldType } from "@/enums/formFieldType"
 import SubmitButton from "../shared/submitButton"
 import { useState } from "react"
-import { UserFormValidation } from "@/lib/validation"
-import { createUser } from "@/lib/actions/patient.actions"
+import { PatientFormValidation } from "@/lib/validation"
+import { registerPatient } from "@/lib/actions/patient.actions"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
-import { Doctors, GenderOptions, IdentificationTypes } from "@/constants"
+import { Doctors, GenderOptions, IdentificationTypes, PatientFormDefaultValues } from "@/constants"
 import { Label } from "../ui/label"
 import { SelectItem } from "../ui/select"
 import FileUploader from "../fileUploader"
-// import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
  
 export default function RegisterForm({ user } : { user: User }) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    // const router = useRouter();
+    const router = useRouter();
   
-    const form = useForm<z.infer<typeof UserFormValidation>>({
-        resolver: zodResolver(UserFormValidation),
+    const form = useForm<z.infer<typeof PatientFormValidation>>({
+        resolver: zodResolver(PatientFormValidation),
         defaultValues: {
-        name: "",
-        email: "",
-        phone: "",
+            ...PatientFormDefaultValues
         },
     })
  
-    async function onSubmit({ name, email, phone }: z.infer<typeof UserFormValidation>) {
+    async function onSubmit(values: z.infer<typeof PatientFormValidation>) {
+        console.log("Hello")
         setIsLoading(true)
 
-        // try {
-        //     const userData = { name, email, phone}
-        //     console.log(userData)
+        let formData
+        if (values.identificationDocument && values.identificationDocument.length > 0) {
+            const blobFile = new Blob([values.identificationDocument[0]], {
+                type: values.identificationDocument[0].type
+            })
 
-        //     const user = await createUser(userData)
-        //     if(user) router.push(`/patients/${user.$id}/register`)
-        // } catch (error) {
-        //     console.log(error)
-        // }
+            formData = new FormData()
+            formData.append('blobFile', blobFile)
+            formData.append('fileName', values.identificationDocument[0].name)
+        }
+
+        try {
+            const patient = {
+                userId: user.$id,
+                name: values.name,
+                email: values.email,
+                phone: values.phone,
+                birthDate: new Date(values.birthDate),
+                gender: values.gender,
+                address: values.address,
+                occupation: values.occupation,
+                emergencyContactName: values.emergencyContactName,
+                emergencyContactNumber: values.emergencyContactNumber,
+                primaryPhysician: values.primaryPhysician,
+                insuranceProvider: values.insuranceProvider,
+                insurancePolicyNumber: values.insurancePolicyNumber,
+                allergies: values.allergies,
+                currentMedication: values.currentMedication,
+                familyMedicalHistory: values.familyMedicalHistory,
+                pastMedicalHistory: values.pastMedicalHistory,
+                identificationType: values.identificationType,
+                identificationNumber: values.identificationNumber,
+                identificationDocument: values.identificationDocument
+                  ? formData
+                  : undefined,
+                privacyConsent: values.privacyConsent,
+              };
+
+            const newPatient = await registerPatient(patient);
+
+            if (newPatient) {
+                console.log(newPatient)
+                if(user) router.push(`/patients/${user.$id}/new-appointment`)
+            }
+        } catch (error) {
+            console.log(error)
+        }
 
         setIsLoading(false)
     }
@@ -275,22 +312,22 @@ export default function RegisterForm({ user } : { user: User }) {
             fieldType={FormFieldType.CHECKBOX}
             control={form.control}
             name="treatmentConsent"
-            label="I consent to treatment"
+            label="I consent to receive treatment for my health condition."
         />
         <CustomFormField
             fieldType={FormFieldType.CHECKBOX}
             control={form.control}
             name="disclosureConsent"
-            label="I consent to disclosure of information"
+            label="I consent to the use and disclosure of my health information for treatment purposes."
         />
         <CustomFormField
             fieldType={FormFieldType.CHECKBOX}
             control={form.control}
             name="privacyConsent"
-            label="I consent to privacy policy"
+            label="I acknowledge that I have reviewed and agree to the privacy policy"
         />
 
-        <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
+        <SubmitButton isLoading={isLoading}>Register Patient</SubmitButton>
       </form>
     </Form>
   )

@@ -10,7 +10,7 @@ import SubmitButton from "../shared/submitButton"
 import { useState } from "react"
 import { UserFormValidation } from "@/lib/validation"
 import { createUser } from "@/lib/actions/patient.actions"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
  
 export default function PatientForm() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -30,9 +30,10 @@ export default function PatientForm() {
 
         try {
             const userData = { name, email, phone}
-            console.log(userData)
 
             const user = await createUser(userData)
+            console.log('user', user)
+
             if(user) router.push(`/patients/${user.$id}/register`)
         } catch (error) {
             console.log(error)
